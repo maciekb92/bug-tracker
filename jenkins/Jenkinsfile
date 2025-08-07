@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     stages {
-        stage('Hello') {
+        stage('Running backend unit tests') {
             steps {
-                echo 'Hello World'
-                sh 'echo "Hello new pipeline"'
-                sh 'date'
+                dir('bugtracker-backend') {
+                    sh 'go test -v ./...'
+                }
             }
         }
     }
