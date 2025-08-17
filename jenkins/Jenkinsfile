@@ -25,11 +25,14 @@ pipeline {
                                 # Generate coverage report
                                 go test --coverprofile=coverage.out -covermode=atomic ./...
 
-                                # Create report directory
-                                mkdir -p report
-
                                 # Generate HTML coverage report
-                                go tool cover -html=coverage.out -o report/coverage.html
+                                go tool cover -html=coverage.out -o coverage.html
+
+                                # Create report directory
+                                mkdir -p reports
+
+                                # Move coverage.html to report directory
+                                mv coverage.html reports/
                             '''
                         }
                     }
@@ -37,7 +40,7 @@ pipeline {
                         always {
                             junit 'bugtracker-backend/test-results.xml'
                             publishHTML target:([
-                                reportDir: 'bugtracker-backend/report',
+                                reportDir: 'bugtracker-backend/reports',
                                 reportFiles: 'coverage.html',
                                 reportName: 'Backend Coverage Report'
                             ])
@@ -56,7 +59,13 @@ pipeline {
                         dir('bugtracker-frontend') {
                             sh '''
                                 npm ci
-                                npm test    
+                                npm test
+
+                                # Create reports directory
+                                mkdir -p reports
+
+                                # Move index.html to reports directory
+                                mv coverage reports/
                             '''
                         }
                     }
@@ -64,7 +73,7 @@ pipeline {
                         always {
                             junit 'bugtracker-frontend/test-results.xml'
                             publishHTML target:([
-                                reportDir: 'bugtracker-frontend/coverage',
+                                reportDir: 'bugtracker-frontend/reports/coverage',
                                 reportFiles: 'index.html',
                                 reportName: 'Frontend Coverage Report'
                             ])
