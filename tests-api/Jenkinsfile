@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Launch application') {
+            agent {
+                docker {
+                        image 'docker:28.3.3'
+                        reuseNode true
+                        args '-v /var/run/docker.sock:/var/run/docker.sock -u root --privileged'
+                    }
+                }
+            steps {
+                sh '''
+                    chmod 666 /var/run/docker.sock || true
+                    docker compose up --build -d
+                '''
+            }
+        }
+        
+        stage('API tests') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.50.0-jammy'
+                    reuseNode true
+                    args '-u 0 --network=host'
+                }
+            }
+            steps {
+                dir('tests-api') {
+                    sh '''
+                        npx wait-port http://localhost:8080/api/health -t 30000
+                        npm install
+                        npx playwright test
+                    '''
+                }
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
+        }
+    }
+}
