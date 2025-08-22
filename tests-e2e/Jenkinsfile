@@ -17,19 +17,18 @@ pipeline {
                 '''
             }
         }
-        
-        stage('API tests') {
+
+        stage('E2E tests') {
             agent {
                 docker {
-                    image 'mcr.microsoft.com/playwright:v1.50.0-jammy'
+                    image 'docker:28.3.3'
                     reuseNode true
-                    args '-u 0 --network=host'
+                    args '-v /var/run/docker.sock:/var/run/docker.sock -u root --privileged'
                 }
             }
             steps {
-                dir('tests-api') {
+                dir('tests-e2e') {
                     sh '''
-                        npx wait-port http://localhost:8080/api/health -t 30000
                         npm install
                         npx playwright test
                     '''
@@ -37,11 +36,11 @@ pipeline {
             }
             post {
                 always {
-                    junit 'tests-api/test-results/results.xml'
+                    junit 'tests-e2e/test-results/results.xml'
                     publishHTML target:([
-                        reportDir: 'tests-api/playwright-report',
-                        reportFiles: 'index.html',
-                        reportName: 'Playwright API Tests',
+                        reportDir: 'tests-e2e/playwright-report',
+                        reportNames: 'index.html',
+                        reportName: 'Playwright E2E tests',
                     ])
                 }
             }
