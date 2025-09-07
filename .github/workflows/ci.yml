@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main  
 
 jobs:
   unit-tests-backend:
@@ -29,9 +32,9 @@ jobs:
           go test -json -coverprofile=coverage.out -covermode=atomic ./...
           go tool cover -func=coverage.out > coverage.txt
 
-          echo '```' >> $GITHUB_STEP_SUMMURY
-          cat coverage.txt >> $GITHUB_STEP_SUMMURY
-          echo '```' >> $GITHUB_STEP_SUMMURY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat coverage.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
           echo 'report<<EOF' >> $GITHUB_OUTPUT
           cat coverage.txt >> $GITHUB_OUTPUT
@@ -77,7 +80,7 @@ jobs:
           name: Frontend Unit Tests Report  
           path: bugtracker-frontend/test-results.xml
           reporter: jest-junit
-          
+
   create-coverage-comment:
     if: github.event_name == 'pull_request'
     needs: [unit-tests-backend]
